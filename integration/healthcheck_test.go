@@ -16,7 +16,7 @@ import (
 	checker "github.com/vdemeester/shakers"
 )
 
-// HealchCheck test suites (using libcompose)
+// HealthCheck test suites (using libcompose)
 type HealthCheckSuite struct{ BaseSuite }
 
 func (s *HealthCheckSuite) SetUpSuite(c *check.C) {
