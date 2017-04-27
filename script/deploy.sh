@@ -20,7 +20,7 @@ ssh-add ~/.ssh/traefik.id_rsa
 
 # update traefik-library-image repo (official Docker image)
 echo "Updating traefik-library-imag repo..."
-git clone git@github.com:containous/traefik-library-image.git
+git clone git@github.com:atbore-phx/traefik-library-image.git
 cd traefik-library-image
 ./update.sh $VERSION
 git add -A
@@ -31,10 +31,10 @@ git push -q --follow-tags -u origin master > /dev/null 2>&1
 # create docker image emilevauge/traefik (compatibility)
 echo "Updating docker emilevauge/traefik image..."
 docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-docker tag containous/traefik emilevauge/traefik:latest
-docker push emilevauge/traefik:latest
-docker tag emilevauge/traefik:latest emilevauge/traefik:${VERSION}
-docker push emilevauge/traefik:${VERSION}
+docker tag atbore-phx/traefik testci/traefik:latest
+docker push testci/traefik:latest
+docker tag atbore-phx/traefik:latest testci/traefik:${VERSION}
+docker push testci/traefik:${VERSION}
 
 cd ..
 rm -Rf traefik-library-image/

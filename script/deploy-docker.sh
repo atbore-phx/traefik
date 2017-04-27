@@ -11,9 +11,9 @@ fi
 # create docker image containous/traefik
 echo "Updating docker containous/traefik image..."
 docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-docker tag containous/traefik containous/traefik:${TRAVIS_COMMIT}
-docker push containous/traefik:${TRAVIS_COMMIT}
-docker tag containous/traefik containous/traefik:experimental
-docker push containous/traefik:experimental
+docker tag atbore-phx/traefik testci/traefik:${TRAVIS_COMMIT}
+docker push testci/traefik:${TRAVIS_COMMIT}
+docker tag atbore-phx/traefik testci/traefik:experimental
+docker push testci/traefik:experimental
 
 echo "Deployed"
