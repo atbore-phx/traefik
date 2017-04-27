@@ -41,7 +41,7 @@ deploy:
     local_dir: site
     skip_cleanup: true
     on:
-      repo: containous/traefik
+      repo: atbore-phx/traefik
       tags: true
   - provider: releases
     api_key: ${GITHUB_TOKEN}
@@ -49,16 +49,16 @@ deploy:
     skip_cleanup: true
     file_glob: true
     on:
-      repo: containous/traefik
+      repo: atbore-phx/traefik
       tags: true
   - provider: script
     script: sh script/deploy.sh
     skip_cleanup: true
     on:
-      repo: containous/traefik
+      repo: atbore-phx/traefik
       tags: true
   - provider: script
     script: sh script/deploy-docker.sh
     skip_cleanup: true
     on:
-      repo: containous/traefik
+      repo: atbore-phx/traefik
