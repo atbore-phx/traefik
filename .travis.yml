@@ -34,31 +34,31 @@ before_deploy:
   - make image
   - mkdocs build --clean
   - tar cfz dist/traefik-${VERSION}.src.tar.gz --exclude-vcs --exclude dist .
-deploy:
-  - provider: pages
-    edge: true
-    github_token: ${GITHUB_TOKEN}
-    local_dir: site
-    skip_cleanup: true
-    on:
-      repo: atbore-phx/traefik
-      tags: true
-  - provider: releases
-    api_key: ${GITHUB_TOKEN}
-    file: dist/traefik*
-    skip_cleanup: true
-    file_glob: true
-    on:
-      repo: atbore-phx/traefik
-      tags: true
-  - provider: script
-    script: sh script/deploy.sh
-    skip_cleanup: true
-    on:
-      repo: atbore-phx/traefik
-      tags: true
-  - provider: script
-    script: sh script/deploy-docker.sh
-    skip_cleanup: true
-    on:
-      repo: atbore-phx/traefik
+#deploy:
+#  - provider: pages
+#    edge: true
+#    github_token: ${GITHUB_TOKEN}
+#    local_dir: site
+#    skip_cleanup: true
+#    on:
+#      repo: atbore-phx/traefik
+#      tags: true
+#  - provider: releases
+#    api_key: ${GITHUB_TOKEN}
+#    file: dist/traefik*
+#    skip_cleanup: true
+#    file_glob: true
+#    on:
+#      repo: atbore-phx/traefik
+#      tags: true
+#  - provider: script
+#    script: sh script/deploy.sh
+#    skip_cleanup: true
+#    on:
+#      repo: atbore-phx/traefik
+#      tags: true
+#  - provider: script
+#    script: sh script/deploy-docker.sh
+#    skip_cleanup: true
+#    on:
+#      repo: atbore-phx/traefik
