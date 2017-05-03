@@ -22,6 +22,8 @@ INTEGRATION_OPTS := $(if $(MAKE_DOCKER_HOST),-e "DOCKER_HOST=$(MAKE_DOCKER_HOST)
 
 DOCKER_BUILD_ARGS := $(if $(DOCKER_VERSION), "--build-arg=DOCKER_VERSION=$(DOCKER_VERSION)",)
 DOCKER_RUN_TRAEFIK := docker run $(INTEGRATION_OPTS) -it $(TRAEFIK_ENVS) $(TRAEFIK_MOUNT) "$(TRAEFIK_DEV_IMAGE)"
+DOCKER_RUN_TRAEFIK_NOTTY := docker run $(INTEGRATION_OPTS) -i $(TRAEFIK_ENVS) $(TRAEFIK_MOUNT) "$(TRAEFIK_DEV_IMAGE)"
+
 
 print-%: ; @echo $*=$($*)
 
@@ -35,6 +37,16 @@ binary: generate-webui build ## build the linux binary
 
 crossbinary: generate-webui build ## cross build the non-linux binaries
 	$(DOCKER_RUN_TRAEFIK) ./script/make.sh generate crossbinary
+
+crossbinary-p:
+	$(MAKE) generate-webui build
+	$(MAKE) crossbinary-default crossbinary-others
+
+crossbinary-default:
+	$(DOCKER_RUN_TRAEFIK_NOTTY) ./script/make.sh generate crossbinary-default
+
+crossbinary-others:
+	$(DOCKER_RUN_TRAEFIK_NOTTY) ./script/make.sh generate crossbinary-others
 
 test: build ## run the unit and integration tests
 	$(DOCKER_RUN_TRAEFIK) ./script/make.sh generate test-unit binary test-integration
