@@ -65,7 +65,7 @@ func (s *AcmeSuite) TestRetrieveAcmeCertificate(c *check.C) {
 	client := &http.Client{Transport: tr}
 
 	// wait for traefik (generating acme account take some seconds)
-	err = utils.Try(30*time.Second, func() error {
+	err = utils.Try(90*time.Second, func() error {
 		_, err := client.Get("https://127.0.0.1:5001")
 		if err != nil {
 			return err

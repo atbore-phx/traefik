@@ -81,7 +81,7 @@ func (s *EurekaSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(resp.StatusCode, checker.Equals, 204)
 
 	// wait for traefik
-	err = utils.TryRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, func(res *http.Response) error {
+	err = utils.TryRequest("http://127.0.0.1:8080/api/providers", 120*time.Second, func(res *http.Response) error {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
