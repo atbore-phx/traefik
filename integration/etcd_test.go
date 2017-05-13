@@ -144,7 +144,7 @@ func (s *EtcdSuite) TestNominalConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 
 	// wait for traefik
-	err = utils.TryRequest("http://127.0.0.1:8081/api/providers", 60*time.Second, utils.BodyContains("Path:/test"))
+	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second, utils.BodyContains("Path:/test"))
 	c.Assert(err, checker.IsNil)
 
 	client := &http.Client{}
@@ -266,7 +266,7 @@ func (s *EtcdSuite) TestGlobalConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 
 	// wait for traefik
-	err = utils.TryRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Path:/test"))
+	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Path:/test"))
 	c.Assert(err, checker.IsNil)
 
 	//check
@@ -370,7 +370,7 @@ func (s *EtcdSuite) TestCertificatesContentstWithSNIConfigHandshake(c *check.C) 
 	defer cmd.Process.Kill()
 
 	// wait for traefik
-	err = utils.TryRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:snitest.org"))
+	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:snitest.org"))
 	c.Assert(err, checker.IsNil)
 
 	//check

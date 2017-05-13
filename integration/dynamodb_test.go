@@ -154,7 +154,7 @@ func (s *DynamoDBSuite) TestSimpleConfiguration(c *check.C) {
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
-	err = utils.TryRequest("http://127.0.0.1:8081/api/providers", 120*time.Second, func(res *http.Response) error {
+	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 120*time.Second, func(res *http.Response) error {
 		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err

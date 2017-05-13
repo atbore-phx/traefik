@@ -39,7 +39,7 @@ func (s *HealthCheckSuite) TestSimpleConfiguration(c *check.C) {
 	defer cmd.Process.Kill()
 
 	// wait for traefik
-	err = utils.TryRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:test.localhost"))
+	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:test.localhost"))
 	c.Assert(err, checker.IsNil)
 
 	client := &http.Client{}
@@ -60,11 +60,8 @@ func (s *HealthCheckSuite) TestSimpleConfiguration(c *check.C) {
 	_, err = client.Do(healthReq)
 	c.Assert(err, checker.IsNil)
 
-	utils.Sleep(3 * time.Second)
-
-	resp, err = client.Do(req)
+	utils.TryResponseUntilStatusCode(req, 3*time.Second, 200)
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 200)
 
 	resp, err = client.Do(req)
 	c.Assert(err, checker.IsNil)

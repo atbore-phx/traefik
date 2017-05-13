@@ -25,7 +25,7 @@ func (s *AcmeSuite) SetUpSuite(c *check.C) {
 	boulderHost := s.composeProject.Container(c, "boulder").NetworkSettings.IPAddress
 
 	// wait for boulder
-	err := utils.TryRequest("http://"+boulderHost+":4000/directory", 120*time.Second, utils.StatusCodeIs(200))
+	err := utils.TryGetRequest("http://"+boulderHost+":4000/directory", 120*time.Second, utils.UntilStatusCodeIs(200))
 	c.Assert(err, checker.IsNil)
 }
 
@@ -54,7 +54,10 @@ func (s *AcmeSuite) TestRetrieveAcmeCertificate(c *check.C) {
 	client := &http.Client{Transport: tr}
 
 	// wait for traefik (generating acme account take some seconds)
-	err = utils.TryRequest("https://127.0.0.1:5001", 60*time.Second, nil)
+	err = utils.Try(30*time.Second, func() error {
+		_, err := client.Get("https://127.0.0.1:5001")
+		return err
+	})
 	c.Assert(err, checker.IsNil)
 
 	tr = &http.Transport{

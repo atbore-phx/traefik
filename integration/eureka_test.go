@@ -31,7 +31,7 @@ func (s *EurekaSuite) SetUpSuite(c *check.C) {
 	s.eurekaURL = "http://" + s.eurekaIP + ":8761/eureka/apps"
 
 	// wait for eureka
-	err := utils.TryRequest(s.eurekaURL, 60*time.Second, nil)
+	err := utils.TryGetRequest(s.eurekaURL, 60*time.Second, nil)
 	c.Assert(err, checker.IsNil)
 }
 
@@ -78,7 +78,7 @@ func (s *EurekaSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(resp.StatusCode, checker.Equals, 204)
 
 	// wait for traefik
-	err = utils.TryRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:tests-integration-traefik"))
+	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:tests-integration-traefik"))
 	c.Assert(err, checker.IsNil)
 
 	client := &http.Client{}

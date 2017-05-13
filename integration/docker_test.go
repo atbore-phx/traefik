@@ -105,17 +105,13 @@ func (s *DockerSuite) TestDefaultDockerContainers(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
-	utils.Sleep(1500 * time.Millisecond)
-
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/version", nil)
 	c.Assert(err, checker.IsNil)
 	req.Host = fmt.Sprintf("%s.docker.localhost", strings.Replace(name, "_", "-", -1))
-	resp, err := client.Do(req)
 
+	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
+	resp, err := utils.TryResponseUntilStatusCode(req, 1500*time.Millisecond, 200)
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 200)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	c.Assert(err, checker.IsNil)
@@ -141,15 +137,12 @@ func (s *DockerSuite) TestDockerContainersWithLabels(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
-	utils.Sleep(1500 * time.Millisecond)
-
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/version", nil)
 	c.Assert(err, checker.IsNil)
-	req.Host = fmt.Sprintf("my.super.host")
-	resp, err := client.Do(req)
+	req.Host = fmt.Sprint("my.super.host")
 
+	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
+	resp, err := utils.TryResponseUntilStatusCode(req, 1500*time.Millisecond, 200)
 	c.Assert(err, checker.IsNil)
 	c.Assert(resp.StatusCode, checker.Equals, 200)
 
@@ -183,7 +176,7 @@ func (s *DockerSuite) TestDockerContainersWithOneMissingLabels(c *check.C) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/version", nil)
 	c.Assert(err, checker.IsNil)
-	req.Host = fmt.Sprintf("my.super.host")
+	req.Host = fmt.Sprint("my.super.host")
 	resp, err := client.Do(req)
 
 	c.Assert(err, checker.IsNil)

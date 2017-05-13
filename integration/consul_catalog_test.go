@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os/exec"
 	"time"
@@ -116,18 +115,11 @@ func (s *ConsulCatalogSuite) TestSingleService(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("Error registering service"))
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
-	err = utils.TryRequest("http://127.0.0.1:8000/", 5*time.Second, utils.UntilStatusCodeIs(200))
-	c.Assert(err, checker.IsNil)
-
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
 	req.Host = "test.consul.localhost"
-	resp, err := client.Do(req)
 
-	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 200)
-
-	_, err = ioutil.ReadAll(resp.Body)
+	cond := utils.ComposeCondition(utils.UntilStatusCodeIs(200), utils.BodyContains("Welcome to nginx!"))
+	err = utils.TryRequest(req, 5*time.Second, cond)
 	c.Assert(err, checker.IsNil)
 }
