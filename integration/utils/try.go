@@ -60,7 +60,7 @@ func TryResponseUntilStatusCode(req *http.Request, timeout time.Duration, status
 func TryGetRequest(url string, timeout time.Duration, condition Condition) error {
 	resp, err := doGetResponse(url, timeout, condition)
 
-	if resp.Body != nil {
+	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
 
@@ -74,7 +74,7 @@ func TryGetRequest(url string, timeout time.Duration, condition Condition) error
 func TryRequest(req *http.Request, timeout time.Duration, condition Condition) error {
 	resp, err := doResponse(req, timeout, condition)
 
-	if resp.Body != nil {
+	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
 
@@ -193,9 +193,10 @@ func doGetResponse(url string, timeout time.Duration, condition Condition) (*htt
 func doResponse(request *http.Request, timeout time.Duration, condition Condition) (*http.Response, error) {
 	var resp *http.Response
 	return resp, Try(timeout, func() error {
+		var err error
 		client := &http.Client{}
 
-		resp, err := client.Do(request)
+		resp, err = client.Do(request)
 
 		if err == nil && condition != nil {
 			err = condition(resp)
