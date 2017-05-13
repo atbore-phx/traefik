@@ -5,11 +5,15 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
 
-const maxWaitTime = 5 * time.Second
+const (
+	CITimeoutMultiplier = 3
+	maxInterval         = 5 * time.Second
+)
 
 // TryGetResponse is like TryRequest, but returns the response for further
 // processing at the call site.
@@ -48,9 +52,15 @@ func Try(timeout time.Duration, operation func() error) error {
 		panic("timeout must be larger than zero")
 	}
 
-	wait := time.Duration(math.Ceil(float64(timeout) / 10.0))
-	if wait > maxWaitTime {
-		wait = maxWaitTime
+	interval := time.Duration(math.Ceil(float64(timeout) / 10.0))
+	if interval > maxInterval {
+		interval = maxInterval
+	}
+
+	ci := os.Getenv("CI")
+	if len(ci) > 0 {
+		log.Println("Activate CI multiplier:", CITimeoutMultiplier)
+		timeout = time.Duration(float64(timeout) * CITimeoutMultiplier)
 	}
 
 	var err error
