@@ -66,12 +66,15 @@ func Try(timeout time.Duration, operation func() error) error {
 
 	for {
 		if time.Now().After(stopTime) {
+			fmt.Println("-")
 			return fmt.Errorf("try operation failed: %s", err)
 		}
 
 		select {
 		case <-time.Tick(interval):
+			fmt.Print("*")
 			if err = operation(); err == nil {
+				fmt.Println("+")
 				return nil
 			}
 		}
