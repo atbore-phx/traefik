@@ -112,6 +112,19 @@ func Sleep(d time.Duration) {
 // if the response failed the condition.
 type Condition func(*http.Response) error
 
+// ComposeCondition compose several `Conditions`.
+func ComposeCondition(conditions ...Condition) Condition {
+	return func(resp *http.Response) error {
+		for _, cond := range conditions {
+			err := cond(resp)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
 // BodyContains returns a retry condition function.
 // The condition returns an error if the request body does not contain the given
 // string.
