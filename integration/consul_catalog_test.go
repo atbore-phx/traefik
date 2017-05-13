@@ -32,12 +32,12 @@ func (s *ConsulCatalogSuite) SetUpSuite(c *check.C) {
 	config.Address = s.consulIP + ":8500"
 	consulClient, err := api.NewClient(config)
 	if err != nil {
-		c.Fatalf("Error creating consul client")
+		c.Fatalf("Error creating consul client. %v", err)
 	}
 	s.consulClient = consulClient
 
 	// Wait for consul to elect itself leader
-	utils.Try(2*time.Second, func() error {
+	err = utils.Try(2*time.Second, func() error {
 		leader, err := consulClient.Status().Leader()
 
 		if err != nil || len(leader) == 0 {
@@ -46,6 +46,7 @@ func (s *ConsulCatalogSuite) SetUpSuite(c *check.C) {
 
 		return nil
 	})
+	c.Assert(err, checker.IsNil)
 }
 
 func (s *ConsulCatalogSuite) registerService(name string, address string, port int, tags []string) error {
@@ -89,7 +90,8 @@ func (s *ConsulCatalogSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	time.Sleep(500 * time.Millisecond)
+	// FIXME replace by a Try
+	utils.Sleep(500 * time.Millisecond)
 	// TODO validate : run on 80
 	resp, err := http.Get("http://127.0.0.1:8000/")
 
@@ -114,7 +116,9 @@ func (s *ConsulCatalogSuite) TestSingleService(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("Error registering service"))
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
-	time.Sleep(5000 * time.Millisecond)
+	err = utils.TryRequest("http://127.0.0.1:8000/", 5*time.Second, utils.UntilStatusCodeIs(200))
+	c.Assert(err, checker.IsNil)
+
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
