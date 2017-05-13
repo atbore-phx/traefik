@@ -127,7 +127,7 @@ func (s *ConstraintSuite) TestDoesNotMatchConstraintGlobal(c *check.C) {
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
 	// FIXME replace by a Try
-	time.Sleep(5 * time.Second)
+	utils.Sleep(5 * time.Second)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
@@ -186,7 +186,7 @@ func (s *ConstraintSuite) TestDoesNotMatchConstraintProvider(c *check.C) {
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
 	// FIXME replace by a Try
-	time.Sleep(5 * time.Second)
+	utils.Sleep(5 * time.Second)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
@@ -247,7 +247,7 @@ func (s *ConstraintSuite) TestDoesNotMatchMultipleConstraint(c *check.C) {
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
 	// FIXME replace by a Try
-	time.Sleep(5 * time.Second)
+	utils.Sleep(5 * time.Second)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
