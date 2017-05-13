@@ -17,26 +17,41 @@ const (
 	maxInterval         = 5 * time.Second
 )
 
-// TryGetResponse is like TryRequest, but returns the response for further
+// TryGetResponse is like TryGetRequest, but returns the response for further
 // processing at the call site.
 // Conditions are not allowed since it would complicate signaling if the
 // response body needs to be closed or not. Callers are expected to close on
 // their own if the function returns a nil error.
 func TryGetResponse(url string, timeout time.Duration) (*http.Response, error) {
-	return tryGetResponse(url, timeout, nil)
+	return doGetResponse(url, timeout, nil)
+}
+
+// TryGetRequest is like Try, but runs a request against the given URL and applies
+// the condition on the response.
+// Condition may be nil, in which case only the request against the URL must
+// succeed.
+func TryGetRequest(url string, timeout time.Duration, condition Condition) error {
+	resp, err := doGetResponse(url, timeout, condition)
+
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
+
+	return err
 }
 
 // TryRequest is like Try, but runs a request against the given URL and applies
 // the condition on the response.
 // Condition may be nil, in which case only the request against the URL must
 // succeed.
-func TryRequest(url string, timeout time.Duration, condition Condition) error {
-	_, err := tryGetResponse(url, timeout, condition)
-	if err != nil {
-		return err
+func TryRequest(req *http.Request, timeout time.Duration, condition Condition) error {
+	resp, err := doResponse(req, timeout, condition)
+
+	if resp.Body != nil {
+		defer resp.Body.Close()
 	}
 
-	return nil
+	return err
 }
 
 // Try repeatedly executes an operation until no error condition occurs or the
@@ -82,7 +97,7 @@ func Try(timeout time.Duration, operation func() error) error {
 }
 
 // Sleep pauses the current goroutine for at least the duration d.
-// Deprecated: Use only when other Try[...] function is not possible.
+// Use only when use an other Try[...] functions is not possible.
 func Sleep(d time.Duration) {
 	ci := os.Getenv("CI")
 	if len(ci) > 0 {
@@ -114,10 +129,10 @@ func BodyContains(s string) Condition {
 	}
 }
 
-// StatusCodeIs returns a retry condition function.
+// UntilStatusCodeIs returns a retry condition function.
 // The condition returns an error if the given response's status code is not the
 // given HTTP status code.
-func StatusCodeIs(status int) Condition {
+func UntilStatusCodeIs(status int) Condition {
 	return func(res *http.Response) error {
 		if res.StatusCode != status {
 			return fmt.Errorf("got status code %d, wanted %d", res.StatusCode, status)
@@ -126,18 +141,24 @@ func StatusCodeIs(status int) Condition {
 	}
 }
 
-func tryGetResponse(url string, timeout time.Duration, condition Condition) (*http.Response, error) {
+func doGetResponse(url string, timeout time.Duration, condition Condition) (*http.Response, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return doResponse(req, timeout, condition)
+}
+
+func doResponse(request *http.Request, timeout time.Duration, condition Condition) (*http.Response, error) {
 	var resp *http.Response
 	return resp, Try(timeout, func() error {
-		var err error
-		resp, err = http.Get(url)
+		client := &http.Client{}
+
+		resp, err := client.Do(request)
 
 		if err == nil && condition != nil {
 			err = condition(resp)
-
-			if resp.Body != nil {
-				defer resp.Body.Close()
-			}
 		}
 
 		return err
