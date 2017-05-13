@@ -72,7 +72,10 @@ func (s *ConsulCatalogSuite) deregisterService(name string, address string) erro
 }
 
 func (s *ConsulCatalogSuite) TestSimpleConfiguration(c *check.C) {
-	cmd := exec.Command(traefikBinary, "--consulCatalog", "--consulCatalog.endpoint="+s.consulIP+":8500", "--configFile=fixtures/consul_catalog/simple.toml")
+	cmd := exec.Command(traefikBinary,
+		"--consulCatalog",
+		"--consulCatalog.endpoint="+s.consulIP+":8500",
+		"--configFile=fixtures/consul_catalog/simple.toml")
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
@@ -87,7 +90,11 @@ func (s *ConsulCatalogSuite) TestSimpleConfiguration(c *check.C) {
 }
 
 func (s *ConsulCatalogSuite) TestSingleService(c *check.C) {
-	cmd := exec.Command(traefikBinary, "--consulCatalog", "--consulCatalog.endpoint="+s.consulIP+":8500", "--consulCatalog.domain=consul.localhost", "--configFile=fixtures/consul_catalog/simple.toml")
+	cmd := exec.Command(traefikBinary,
+		"--consulCatalog",
+		"--consulCatalog.endpoint="+s.consulIP+":8500",
+		"--consulCatalog.domain=consul.localhost",
+		"--configFile=fixtures/consul_catalog/simple.toml")
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()

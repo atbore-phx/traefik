@@ -71,7 +71,12 @@ func (s *ConstraintSuite) deregisterService(name string, address string) error {
 }
 
 func (s *ConstraintSuite) TestMatchConstraintGlobal(c *check.C) {
-	cmd := exec.Command(traefikBinary, "--consulCatalog", "--consulCatalog.endpoint="+s.consulIP+":8500", "--consulCatalog.domain=consul.localhost", "--configFile=fixtures/consul_catalog/simple.toml", "--constraints=tag==api")
+	cmd := exec.Command(traefikBinary,
+		"--consulCatalog",
+		"--consulCatalog.endpoint="+s.consulIP+":8500",
+		"--consulCatalog.domain=consul.localhost",
+		"--configFile=fixtures/consul_catalog/simple.toml",
+		"--constraints=tag==api")
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
@@ -94,7 +99,12 @@ func (s *ConstraintSuite) TestMatchConstraintGlobal(c *check.C) {
 }
 
 func (s *ConstraintSuite) TestDoesNotMatchConstraintGlobal(c *check.C) {
-	cmd := exec.Command(traefikBinary, "--consulCatalog", "--consulCatalog.endpoint="+s.consulIP+":8500", "--consulCatalog.domain=consul.localhost", "--configFile=fixtures/consul_catalog/simple.toml", "--constraints=tag==api")
+	cmd := exec.Command(traefikBinary,
+		"--consulCatalog",
+		"--consulCatalog.endpoint="+s.consulIP+":8500",
+		"--consulCatalog.domain=consul.localhost",
+		"--configFile=fixtures/consul_catalog/simple.toml",
+		"--constraints=tag==api")
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
@@ -117,7 +127,12 @@ func (s *ConstraintSuite) TestDoesNotMatchConstraintGlobal(c *check.C) {
 }
 
 func (s *ConstraintSuite) TestMatchConstraintProvider(c *check.C) {
-	cmd := exec.Command(traefikBinary, "--consulCatalog", "--consulCatalog.endpoint="+s.consulIP+":8500", "--consulCatalog.domain=consul.localhost", "--configFile=fixtures/consul_catalog/simple.toml", "--consulCatalog.constraints=tag==api")
+	cmd := exec.Command(traefikBinary,
+		"--consulCatalog",
+		"--consulCatalog.endpoint="+s.consulIP+":8500",
+		"--consulCatalog.domain=consul.localhost",
+		"--configFile=fixtures/consul_catalog/simple.toml",
+		"--consulCatalog.constraints=tag==api")
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
@@ -140,7 +155,12 @@ func (s *ConstraintSuite) TestMatchConstraintProvider(c *check.C) {
 }
 
 func (s *ConstraintSuite) TestDoesNotMatchConstraintProvider(c *check.C) {
-	cmd := exec.Command(traefikBinary, "--consulCatalog", "--consulCatalog.endpoint="+s.consulIP+":8500", "--consulCatalog.domain=consul.localhost", "--configFile=fixtures/consul_catalog/simple.toml", "--consulCatalog.constraints=tag==api")
+	cmd := exec.Command(traefikBinary,
+		"--consulCatalog",
+		"--consulCatalog.endpoint="+s.consulIP+":8500",
+		"--consulCatalog.domain=consul.localhost",
+		"--configFile=fixtures/consul_catalog/simple.toml",
+		"--consulCatalog.constraints=tag==api")
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
@@ -163,7 +183,13 @@ func (s *ConstraintSuite) TestDoesNotMatchConstraintProvider(c *check.C) {
 }
 
 func (s *ConstraintSuite) TestMatchMultipleConstraint(c *check.C) {
-	cmd := exec.Command(traefikBinary, "--consulCatalog", "--consulCatalog.endpoint="+s.consulIP+":8500", "--consulCatalog.domain=consul.localhost", "--configFile=fixtures/consul_catalog/simple.toml", "--consulCatalog.constraints=tag==api", "--constraints=tag!=us-*")
+	cmd := exec.Command(traefikBinary,
+		"--consulCatalog",
+		"--consulCatalog.endpoint="+s.consulIP+":8500",
+		"--consulCatalog.domain=consul.localhost",
+		"--configFile=fixtures/consul_catalog/simple.toml",
+		"--consulCatalog.constraints=tag==api",
+		"--constraints=tag!=us-*")
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
@@ -186,7 +212,13 @@ func (s *ConstraintSuite) TestMatchMultipleConstraint(c *check.C) {
 }
 
 func (s *ConstraintSuite) TestDoesNotMatchMultipleConstraint(c *check.C) {
-	cmd := exec.Command(traefikBinary, "--consulCatalog", "--consulCatalog.endpoint="+s.consulIP+":8500", "--consulCatalog.domain=consul.localhost", "--configFile=fixtures/consul_catalog/simple.toml", "--consulCatalog.constraints=tag==api", "--constraints=tag!=us-*")
+	cmd := exec.Command(traefikBinary,
+		"--consulCatalog",
+		"--consulCatalog.endpoint="+s.consulIP+":8500",
+		"--consulCatalog.domain=consul.localhost",
+		"--configFile=fixtures/consul_catalog/simple.toml",
+		"--consulCatalog.constraints=tag==api",
+		"--constraints=tag!=us-*")
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
