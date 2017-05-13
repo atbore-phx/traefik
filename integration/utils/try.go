@@ -26,6 +26,33 @@ func TryGetResponse(url string, timeout time.Duration) (*http.Response, error) {
 	return doGetResponse(url, timeout, nil)
 }
 
+// TryGetResponseUntilStatusCode is like TryGetRequest, but returns the response for further
+// processing at the call site.
+// Conditions are not allowed since it would complicate signaling if the
+// response body needs to be closed or not. Callers are expected to close on
+// their own if the function returns a nil error.
+func TryGetResponseUntilStatusCode(url string, timeout time.Duration, statusCode int) (*http.Response, error) {
+	return doGetResponse(url, timeout, UntilStatusCodeIs(statusCode))
+}
+
+// TryResponse is like TryRequest, but returns the response for further
+// processing at the call site.
+// Conditions are not allowed since it would complicate signaling if the
+// response body needs to be closed or not. Callers are expected to close on
+// their own if the function returns a nil error.
+func TryResponse(req *http.Request, timeout time.Duration) (*http.Response, error) {
+	return doResponse(req, timeout, nil)
+}
+
+// TryResponseUntilStatusCode is like TryRequest, but returns the response for further
+// processing at the call site.
+// Conditions are not allowed since it would complicate signaling if the
+// response body needs to be closed or not. Callers are expected to close on
+// their own if the function returns a nil error.
+func TryResponseUntilStatusCode(req *http.Request, timeout time.Duration, statusCode int) (*http.Response, error) {
+	return doResponse(req, timeout, UntilStatusCodeIs(statusCode))
+}
+
 // TryGetRequest is like Try, but runs a request against the given URL and applies
 // the condition on the response.
 // Condition may be nil, in which case only the request against the URL must
