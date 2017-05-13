@@ -417,7 +417,7 @@ func (s *ConsulSuite) TestDatastore(c *check.C) {
 		Int:    1,
 	})
 	c.Assert(err, checker.IsNil)
-	time.Sleep(2 * time.Second)
+	utils.Sleep(2 * time.Second)
 	test1 := datastore1.Get().(*TestStruct)
 	c.Assert(test1.String, checker.Equals, "foo")
 
@@ -431,7 +431,7 @@ func (s *ConsulSuite) TestDatastore(c *check.C) {
 		Int:    2,
 	})
 	c.Assert(err, checker.IsNil)
-	time.Sleep(2 * time.Second)
+	utils.Sleep(2 * time.Second)
 	test1 = datastore1.Get().(*TestStruct)
 	c.Assert(test1.String, checker.Equals, "bar")
 

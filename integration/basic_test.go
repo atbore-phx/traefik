@@ -23,7 +23,7 @@ func (s *SimpleSuite) TestInvalidConfigShouldFail(c *check.C) {
 	cmd.Stderr = &b
 
 	cmd.Start()
-	time.Sleep(500 * time.Millisecond)
+	utils.Sleep(500 * time.Millisecond)
 	defer cmd.Process.Kill()
 	output := b.Bytes()
 
@@ -67,7 +67,7 @@ func (s *SimpleSuite) TestDefaultEntryPoints(c *check.C) {
 	cmd.Stderr = &b
 
 	cmd.Start()
-	time.Sleep(500 * time.Millisecond)
+	utils.Sleep(500 * time.Millisecond)
 	defer cmd.Process.Kill()
 	output := b.Bytes()
 
@@ -82,7 +82,7 @@ func (s *SimpleSuite) TestPrintHelp(c *check.C) {
 	cmd.Stderr = &b
 
 	cmd.Start()
-	time.Sleep(500 * time.Millisecond)
+	utils.Sleep(500 * time.Millisecond)
 	defer cmd.Process.Kill()
 	output := b.Bytes()
 

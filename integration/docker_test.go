@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/containous/traefik/integration/utils"
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/go-check/check"
 
@@ -84,7 +85,7 @@ func (s *DockerSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	time.Sleep(500 * time.Millisecond)
+	utils.Sleep(500 * time.Millisecond)
 	// TODO validate : run on 80
 	resp, err := http.Get("http://127.0.0.1:8000/")
 
@@ -105,7 +106,7 @@ func (s *DockerSuite) TestDefaultDockerContainers(c *check.C) {
 	defer cmd.Process.Kill()
 
 	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
-	time.Sleep(1500 * time.Millisecond)
+	utils.Sleep(1500 * time.Millisecond)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/version", nil)
@@ -141,7 +142,7 @@ func (s *DockerSuite) TestDockerContainersWithLabels(c *check.C) {
 	defer cmd.Process.Kill()
 
 	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
-	time.Sleep(1500 * time.Millisecond)
+	utils.Sleep(1500 * time.Millisecond)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/version", nil)
@@ -177,7 +178,7 @@ func (s *DockerSuite) TestDockerContainersWithOneMissingLabels(c *check.C) {
 	defer cmd.Process.Kill()
 
 	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
-	time.Sleep(1500 * time.Millisecond)
+	utils.Sleep(1500 * time.Millisecond)
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/version", nil)

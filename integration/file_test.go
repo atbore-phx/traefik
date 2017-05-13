@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/containous/traefik/integration/utils"
 	"github.com/go-check/check"
 
 	checker "github.com/vdemeester/shakers"
@@ -25,7 +26,7 @@ func (s *FileSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	time.Sleep(1000 * time.Millisecond)
+	utils.Sleep(1000 * time.Millisecond)
 	resp, err := http.Get("http://127.0.0.1:8000/")
 
 	// Expected a 404 as we did not configure anything
@@ -40,7 +41,7 @@ func (s *FileSuite) TestSimpleConfigurationNoPanic(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	time.Sleep(1000 * time.Millisecond)
+	utils.Sleep(1000 * time.Millisecond)
 	resp, err := http.Get("http://127.0.0.1:8000/")
 
 	// Expected a 404 as we did not configure anything

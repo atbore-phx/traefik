@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-check/check"
 
+	"github.com/containous/traefik/integration/utils"
 	checker "github.com/vdemeester/shakers"
 )
 
@@ -23,7 +24,8 @@ func (s *MesosSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	time.Sleep(500 * time.Millisecond)
+	// FIXME replace by a Try
+	utils.Sleep(500 * time.Millisecond)
 	// TODO validate : run on 80
 	resp, err := http.Get("http://127.0.0.1:8000/")
 

@@ -70,7 +70,7 @@ func (s *EtcdSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	time.Sleep(1000 * time.Millisecond)
+	utils.Sleep(1000 * time.Millisecond)
 	// TODO validate : run on 80
 	resp, err := http.Get("http://127.0.0.1:8000/")
 

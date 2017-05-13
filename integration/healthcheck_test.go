@@ -60,7 +60,7 @@ func (s *HealthCheckSuite) TestSimpleConfiguration(c *check.C) {
 	_, err = client.Do(healthReq)
 	c.Assert(err, checker.IsNil)
 
-	time.Sleep(time.Second * 3)
+	utils.Sleep(3 * time.Second)
 
 	resp, err = client.Do(req)
 	c.Assert(err, checker.IsNil)

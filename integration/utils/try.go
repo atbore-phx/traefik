@@ -79,7 +79,7 @@ func Try(timeout time.Duration, operation func() error) error {
 }
 
 // Sleep pauses the current goroutine for at least the duration d.
-// Use only when Try[...] is not possible.
+// Deprecated: Use only when other Try[...] function is not possible.
 func Sleep(d time.Duration) {
 	ci := os.Getenv("CI")
 	if len(ci) > 0 {
