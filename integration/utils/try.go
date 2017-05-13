@@ -88,7 +88,7 @@ func Try(timeout time.Duration, operation func() error) error {
 		panic("timeout must be larger than zero")
 	}
 
-	interval := time.Duration(math.Ceil(float64(timeout) / 10.0))
+	interval := time.Duration(math.Ceil(float64(timeout) / 15.0))
 	if interval > maxInterval {
 		interval = maxInterval
 	}
@@ -112,6 +112,7 @@ func Try(timeout time.Duration, operation func() error) error {
 			return fmt.Errorf("try operation failed: %s", err)
 		}
 
+		// FIXME refactor this part
 		select {
 		case <-time.Tick(interval):
 			fmt.Print("*")
