@@ -78,6 +78,17 @@ func Try(timeout time.Duration, operation func() error) error {
 	}
 }
 
+// Sleep pauses the current goroutine for at least the duration d.
+// Use only when Try[...] is not possible.
+func Sleep(d time.Duration) {
+	ci := os.Getenv("CI")
+	if len(ci) > 0 {
+		log.Println("Activate CI multiplier:", CITimeoutMultiplier)
+		d = time.Duration(float64(d) * CITimeoutMultiplier)
+	}
+	time.Sleep(d)
+}
+
 // Condition is a retry condition function.
 // It receives a response, and returns an error
 // if the response failed the condition.
