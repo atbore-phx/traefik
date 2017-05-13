@@ -16,31 +16,35 @@ import (
 )
 
 // Eureka test suites (using libcompose)
-type EurekaSuite struct{ BaseSuite }
+type EurekaSuite struct {
+	BaseSuite
+	eurekaIP  string
+	eurekaURL string
+}
 
 func (s *EurekaSuite) SetUpSuite(c *check.C) {
 	s.createComposeProject(c, "eureka")
 	s.composeProject.Start(c)
 
+	eureka := s.composeProject.Container(c, "eureka")
+	s.eurekaIP = eureka.NetworkSettings.IPAddress
+	s.eurekaURL = "http://" + s.eurekaIP + ":8761/eureka/apps"
+
+	// wait for eureka
+	err := utils.TryRequest(s.eurekaURL, 60*time.Second, nil)
+	c.Assert(err, checker.IsNil)
 }
 
 func (s *EurekaSuite) TestSimpleConfiguration(c *check.C) {
 
-	eurekaHost := s.composeProject.Container(c, "eureka").NetworkSettings.IPAddress
 	whoami1Host := s.composeProject.Container(c, "whoami1").NetworkSettings.IPAddress
 
-	file := s.adaptFile(c, "fixtures/eureka/simple.toml", struct{ EurekaHost string }{eurekaHost})
+	file := s.adaptFile(c, "fixtures/eureka/simple.toml", struct{ EurekaHost string }{s.eurekaIP})
 	defer os.Remove(file)
 	cmd := exec.Command(traefikBinary, "--configFile="+file)
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
-
-	eurekaURL := "http://" + eurekaHost + ":8761/eureka/apps"
-
-	// wait for eureka
-	err = utils.TryRequest(eurekaURL, 60*time.Second, nil)
-	c.Assert(err, checker.IsNil)
 
 	eurekaTemplate := `
 	{
@@ -59,7 +63,7 @@ func (s *EurekaSuite) TestSimpleConfiguration(c *check.C) {
     }
 	}`
 
-	tmpl, err := template.New("eurekaTemlate").Parse(eurekaTemplate)
+	tmpl, err := template.New("eurekaTemplate").Parse(eurekaTemplate)
 	c.Assert(err, checker.IsNil)
 	buf := new(bytes.Buffer)
 	templateVars := map[string]string{
@@ -69,7 +73,7 @@ func (s *EurekaSuite) TestSimpleConfiguration(c *check.C) {
 	}
 	// add in eureka
 	err = tmpl.Execute(buf, templateVars)
-	resp, err := http.Post(eurekaURL+"/tests-integration-traefik", "application/json", strings.NewReader(buf.String()))
+	resp, err := http.Post(s.eurekaURL+"/tests-integration-traefik", "application/json", strings.NewReader(buf.String()))
 	c.Assert(err, checker.IsNil)
 	c.Assert(resp.StatusCode, checker.Equals, 204)
 
