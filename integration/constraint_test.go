@@ -96,7 +96,9 @@ func (s *ConstraintSuite) TestMatchConstraintGlobal(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("Error registering service"))
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
-	time.Sleep(5000 * time.Millisecond)
+	err = utils.TryRequest("http://127.0.0.1:8000/", 5*time.Second, utils.UntilStatusCodeIs(200))
+	c.Assert(err, checker.IsNil)
+
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
@@ -124,7 +126,8 @@ func (s *ConstraintSuite) TestDoesNotMatchConstraintGlobal(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("Error registering service"))
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
-	time.Sleep(5000 * time.Millisecond)
+	// FIXME replace by a Try
+	time.Sleep(5 * time.Second)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
@@ -152,7 +155,9 @@ func (s *ConstraintSuite) TestMatchConstraintProvider(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("Error registering service"))
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
-	time.Sleep(5000 * time.Millisecond)
+	err = utils.TryRequest("http://127.0.0.1:8000/", 5*time.Second, utils.UntilStatusCodeIs(200))
+	c.Assert(err, checker.IsNil)
+
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
@@ -180,7 +185,8 @@ func (s *ConstraintSuite) TestDoesNotMatchConstraintProvider(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("Error registering service"))
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
-	time.Sleep(5000 * time.Millisecond)
+	// FIXME replace by a Try
+	time.Sleep(5 * time.Second)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
@@ -209,7 +215,9 @@ func (s *ConstraintSuite) TestMatchMultipleConstraint(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("Error registering service"))
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
-	time.Sleep(5000 * time.Millisecond)
+	err = utils.TryRequest("http://127.0.0.1:8000/", 5*time.Second, utils.UntilStatusCodeIs(200))
+	c.Assert(err, checker.IsNil)
+
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
@@ -238,7 +246,8 @@ func (s *ConstraintSuite) TestDoesNotMatchMultipleConstraint(c *check.C) {
 	c.Assert(err, checker.IsNil, check.Commentf("Error registering service"))
 	defer s.deregisterService("test", nginx.NetworkSettings.IPAddress)
 
-	time.Sleep(5000 * time.Millisecond)
+	// FIXME replace by a Try
+	time.Sleep(5 * time.Second)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
