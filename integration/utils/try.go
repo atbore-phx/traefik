@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/containous/traefik/log"
 )
 
 const (
@@ -21,7 +23,7 @@ const (
 // response body needs to be closed or not. Callers are expected to close on
 // their own if the function returns a nil error.
 func TryGetResponse(url string, timeout time.Duration) (*http.Response, error) {
-	return tryGetResponse(url, timeout)
+	return tryGetResponse(url, timeout, nil)
 }
 
 // TryRequest is like Try, but runs a request against the given URL and applies
@@ -29,17 +31,9 @@ func TryGetResponse(url string, timeout time.Duration) (*http.Response, error) {
 // Condition may be nil, in which case only the request against the URL must
 // succeed.
 func TryRequest(url string, timeout time.Duration, condition Condition) error {
-	resp, err := tryGetResponse(url, timeout)
+	_, err := tryGetResponse(url, timeout, condition)
 	if err != nil {
 		return err
-	}
-
-	if resp.Body != nil {
-		defer resp.Body.Close()
-	}
-
-	if condition != nil {
-		return condition(resp)
 	}
 
 	return nil
@@ -68,11 +62,15 @@ func Try(timeout time.Duration, operation func() error) error {
 		return nil
 	}
 
+	stopTime := time.Now().Add(timeout)
+
 	for {
-		select {
-		case <-time.After(timeout):
+		if time.Now().After(stopTime) {
 			return fmt.Errorf("try operation failed: %s", err)
-		case <-time.Tick(wait):
+		}
+
+		select {
+		case <-time.Tick(interval):
 			if err = operation(); err == nil {
 				return nil
 			}
@@ -114,11 +112,20 @@ func StatusCodeIs(status int) Condition {
 	}
 }
 
-func tryGetResponse(url string, timeout time.Duration) (*http.Response, error) {
+func tryGetResponse(url string, timeout time.Duration, condition Condition) (*http.Response, error) {
 	var resp *http.Response
 	return resp, Try(timeout, func() error {
 		var err error
 		resp, err = http.Get(url)
+
+		if err == nil && condition != nil {
+			err = condition(resp)
+
+			if resp.Body != nil {
+				defer resp.Body.Close()
+			}
+		}
+
 		return err
 	})
 }
