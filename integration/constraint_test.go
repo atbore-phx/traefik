@@ -1,13 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os/exec"
 	"time"
 
+	"github.com/containous/traefik/integration/utils"
 	"github.com/go-check/check"
 	"github.com/hashicorp/consul/api"
-
 	checker "github.com/vdemeester/shakers"
 )
 
@@ -35,7 +36,15 @@ func (s *ConstraintSuite) SetUpSuite(c *check.C) {
 	s.consulClient = consulClient
 
 	// Wait for consul to elect itself leader
-	time.Sleep(2000 * time.Millisecond)
+	utils.Try(2*time.Second, func() error {
+		leader, err := consulClient.Status().Leader()
+
+		if err != nil || len(leader) == 0 {
+			return fmt.Errorf("Leader not find. %v", err)
+		}
+
+		return nil
+	})
 }
 
 func (s *ConstraintSuite) registerService(name string, address string, port int, tags []string) error {
