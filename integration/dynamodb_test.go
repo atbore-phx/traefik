@@ -1,12 +1,9 @@
 package main
 
 import (
-	"errors"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -154,21 +151,15 @@ func (s *DynamoDBSuite) TestSimpleConfiguration(c *check.C) {
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
-	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 120*time.Second, func(res *http.Response) error {
-		body, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-		if !strings.Contains(string(body), "Host:test.traefik.io") {
-			return errors.New("incorrect traefik config")
-		}
-		return nil
-	})
+
+	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 120*time.Second, utils.BodyContains("Host:test.traefik.io"))
 	c.Assert(err, checker.IsNil)
+
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8080", nil)
 	c.Assert(err, checker.IsNil)
 	req.Host = "test.traefik.io"
+
 	response, err := client.Do(req)
 	c.Assert(err, checker.IsNil)
 	c.Assert(response.StatusCode, checker.Equals, 200)
