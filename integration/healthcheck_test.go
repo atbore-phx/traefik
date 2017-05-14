@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	"github.com/go-check/check"
 
 	checker "github.com/vdemeester/shakers"
@@ -39,7 +39,7 @@ func (s *HealthCheckSuite) TestSimpleConfiguration(c *check.C) {
 	defer cmd.Process.Kill()
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:test.localhost"))
+	err = try.GetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, try.BodyContains("Host:test.localhost"))
 	c.Assert(err, checker.IsNil)
 
 	client := &http.Client{}
@@ -64,10 +64,10 @@ func (s *HealthCheckSuite) TestSimpleConfiguration(c *check.C) {
 		c.Assert(err, checker.IsNil)
 	}
 
-	utils.Sleep(3 * time.Second)
+	try.Sleep(2 * time.Second)
 
 	// Verify frontend health : 500
-	err = utils.TryRequest(req, 3*time.Second, utils.UntilStatusCodeIs(500))
+	err = try.Request(req, 3*time.Second, try.StatusCodeIs(500))
 	c.Assert(err, checker.IsNil)
 
 	// Change one whoami health to 200
@@ -77,17 +77,17 @@ func (s *HealthCheckSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 
 	// Verify frontend health : before
-	err = utils.TryRequest(req, 3*time.Second, utils.UntilStatusCodeIs(500))
+	err = try.Request(req, 3*time.Second, try.StatusCodeIs(500))
 	c.Assert(err, checker.IsNil)
 
-	utils.Sleep(3 * time.Second)
+	try.Sleep(2 * time.Second)
 
 	// Verify frontend health : after
-	err = utils.TryRequest(req, 3*time.Second, utils.UntilStatusCodeIs(200))
+	err = try.Request(req, 3*time.Second, try.StatusCodeIs(200))
 	c.Assert(err, checker.IsNil)
 
 	// sure?
-	err = utils.TryRequest(req, 3*time.Second, utils.UntilStatusCodeIs(500))
+	err = try.Request(req, 3*time.Second, try.StatusCodeIs(500))
 	c.Assert(err, checker.Not(checker.IsNil))
 
 	resp, err = client.Do(req)

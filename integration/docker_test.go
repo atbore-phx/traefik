@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/go-check/check"
 
@@ -85,13 +85,10 @@ func (s *DockerSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	utils.Sleep(500 * time.Millisecond)
 	// TODO validate : run on 80
-	resp, err := http.Get("http://127.0.0.1:8000/")
-
-	c.Assert(err, checker.IsNil)
 	// Expected a 404 as we did not comfigure anything
-	c.Assert(resp.StatusCode, checker.Equals, 404)
+	err = try.GetRequest("http://127.0.0.1:8000/", 500*time.Millisecond, try.StatusCodeIs(404))
+	c.Assert(err, checker.IsNil)
 }
 
 func (s *DockerSuite) TestDefaultDockerContainers(c *check.C) {
@@ -110,7 +107,7 @@ func (s *DockerSuite) TestDefaultDockerContainers(c *check.C) {
 	req.Host = fmt.Sprintf("%s.docker.localhost", strings.Replace(name, "_", "-", -1))
 
 	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
-	resp, err := utils.TryResponseUntilStatusCode(req, 1500*time.Millisecond, 200)
+	resp, err := try.ResponseUntilStatusCode(req, 1500*time.Millisecond, 200)
 	c.Assert(err, checker.IsNil)
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -142,7 +139,7 @@ func (s *DockerSuite) TestDockerContainersWithLabels(c *check.C) {
 	req.Host = fmt.Sprint("my.super.host")
 
 	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
-	resp, err := utils.TryResponseUntilStatusCode(req, 1500*time.Millisecond, 200)
+	resp, err := try.ResponseUntilStatusCode(req, 1500*time.Millisecond, 200)
 	c.Assert(err, checker.IsNil)
 	c.Assert(resp.StatusCode, checker.Equals, 200)
 
@@ -170,15 +167,13 @@ func (s *DockerSuite) TestDockerContainersWithOneMissingLabels(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
-	utils.Sleep(1500 * time.Millisecond)
-
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/version", nil)
 	c.Assert(err, checker.IsNil)
 	req.Host = fmt.Sprint("my.super.host")
-	resp, err := client.Do(req)
 
+	// FIXME Need to wait than 500 milliseconds more (for swarm or traefik to boot up ?)
+	// TODO validate : run on 80
+	// Expected a 404 as we did not comfigure anything
+	err = try.Request(req, 1500*time.Millisecond, try.StatusCodeIs(404))
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 404)
 }

@@ -1,23 +1,21 @@
 package main
 
 import (
-	"net/http"
-	"os/exec"
-	"time"
-
-	"github.com/go-check/check"
-
-	checker "github.com/vdemeester/shakers"
-
 	"crypto/tls"
 	"io/ioutil"
+	"net/http"
 	"os"
+	"os/exec"
 	"strings"
+	"time"
 
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	"github.com/docker/libkv"
 	"github.com/docker/libkv/store"
 	"github.com/docker/libkv/store/etcd"
+	"github.com/go-check/check"
+
+	checker "github.com/vdemeester/shakers"
 )
 
 // Etcd test suites (using libcompose)
@@ -45,7 +43,7 @@ func (s *EtcdSuite) SetUpTest(c *check.C) {
 	s.kv = kv
 
 	// wait for etcd
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := kv.Exists("test")
 		return err
 	})
@@ -70,13 +68,10 @@ func (s *EtcdSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	utils.Sleep(1000 * time.Millisecond)
 	// TODO validate : run on 80
-	resp, err := http.Get("http://127.0.0.1:8000/")
-
 	// Expected a 404 as we did not configure anything
+	err = try.GetRequest("http://127.0.0.1:8000/", 1000*time.Millisecond, try.StatusCodeIs(404))
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 404)
 }
 
 func (s *EtcdSuite) TestNominalConfiguration(c *check.C) {
@@ -137,14 +132,14 @@ func (s *EtcdSuite) TestNominalConfiguration(c *check.C) {
 	}
 
 	// wait for etcd
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := s.kv.Exists("/traefik/frontends/frontend2/routes/test_2/rule")
 		return err
 	})
 	c.Assert(err, checker.IsNil)
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second, utils.BodyContains("Path:/test"))
+	err = try.GetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second, try.BodyContains("Path:/test"))
 	c.Assert(err, checker.IsNil)
 
 	client := &http.Client{}
@@ -195,7 +190,7 @@ func (s *EtcdSuite) TestGlobalConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 
 	// wait for etcd
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := s.kv.Exists("/traefik/entrypoints/http/address")
 		return err
 	})
@@ -259,14 +254,14 @@ func (s *EtcdSuite) TestGlobalConfiguration(c *check.C) {
 	}
 
 	// wait for etcd
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := s.kv.Exists("/traefik/frontends/frontend2/routes/test_2/rule")
 		return err
 	})
 	c.Assert(err, checker.IsNil)
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Path:/test"))
+	err = try.GetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, try.BodyContains("Path:/test"))
 	c.Assert(err, checker.IsNil)
 
 	//check
@@ -359,7 +354,7 @@ func (s *EtcdSuite) TestCertificatesContentstWithSNIConfigHandshake(c *check.C) 
 	}
 
 	// wait for etcd
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := s.kv.Exists("/traefik/frontends/frontend2/routes/test_2/rule")
 		return err
 	})
@@ -370,7 +365,7 @@ func (s *EtcdSuite) TestCertificatesContentstWithSNIConfigHandshake(c *check.C) 
 	defer cmd.Process.Kill()
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:snitest.org"))
+	err = try.GetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, try.BodyContains("Host:snitest.org"))
 	c.Assert(err, checker.IsNil)
 
 	//check
@@ -406,12 +401,12 @@ func (s *EtcdSuite) TestCommandStoreConfig(c *check.C) {
 		"/traefik/defaultentrypoints/0":     "http",
 		"/traefik/entrypoints/http/address": ":8000",
 		"/traefik/web/address":              ":8080",
-		"/traefik/etcd/endpoint":            (etcdHost + ":4001"),
+		"/traefik/etcd/endpoint":            etcdHost + ":4001",
 	}
 
 	for key, value := range checkmap {
 		var p *store.KVPair
-		err = utils.Try(60*time.Second, func() error {
+		err = try.Do(60*time.Second, func() error {
 			p, err = s.kv.Get(key)
 			return err
 		})

@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	"github.com/go-check/check"
 	"github.com/hashicorp/consul/api"
 	checker "github.com/vdemeester/shakers"
@@ -36,7 +36,7 @@ func (s *ConsulCatalogSuite) SetUpSuite(c *check.C) {
 	s.consulClient = consulClient
 
 	// Wait for consul to elect itself leader
-	err = utils.Try(2*time.Second, func() error {
+	err = try.Do(3*time.Second, func() error {
 		leader, err := consulClient.Status().Leader()
 
 		if err != nil || len(leader) == 0 {
@@ -89,14 +89,10 @@ func (s *ConsulCatalogSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	// FIXME replace by a Try
-	utils.Sleep(500 * time.Millisecond)
 	// TODO validate : run on 80
-	resp, err := http.Get("http://127.0.0.1:8000/")
-
 	// Expected a 404 as we did not configure anything
+	err = try.GetRequest("http://127.0.0.1:8000/", 500*time.Millisecond, try.StatusCodeIs(404))
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 404)
 }
 
 func (s *ConsulCatalogSuite) TestSingleService(c *check.C) {
@@ -119,6 +115,6 @@ func (s *ConsulCatalogSuite) TestSingleService(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	req.Host = "test.consul.localhost"
 
-	err = utils.TryRequest(req, 5*time.Second, utils.UntilStatusCodeIs(200), utils.BodyContains("Welcome to nginx!"))
+	err = try.Request(req, 5*time.Second, try.StatusCodeIs(200), try.BodyContains("Welcome to nginx!"))
 	c.Assert(err, checker.IsNil)
 }

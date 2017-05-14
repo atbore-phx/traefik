@@ -9,7 +9,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	"github.com/go-check/check"
 
 	checker "github.com/vdemeester/shakers"
@@ -31,7 +31,7 @@ func (s *EurekaSuite) SetUpSuite(c *check.C) {
 	s.eurekaURL = "http://" + s.eurekaIP + ":8761/eureka/apps"
 
 	// wait for eureka
-	err := utils.TryGetRequest(s.eurekaURL, 60*time.Second)
+	err := try.GetRequest(s.eurekaURL, 60*time.Second)
 	c.Assert(err, checker.IsNil)
 }
 
@@ -73,27 +73,28 @@ func (s *EurekaSuite) TestSimpleConfiguration(c *check.C) {
 	}
 	// add in eureka
 	err = tmpl.Execute(buf, templateVars)
-	resp, err := http.Post(s.eurekaURL+"/tests-integration-traefik", "application/json", strings.NewReader(buf.String()))
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 204)
+
+	req, err := http.NewRequest("POST", s.eurekaURL+"/tests-integration-traefik", strings.NewReader(buf.String()))
+	c.Assert(err, checker.IsNil)
+	req.Header.Set("Content-Type", "application/json")
+
+	err = try.Request(req, 500*time.Millisecond, try.StatusCodeIs(204))
+	c.Assert(err, checker.IsNil)
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Host:tests-integration-traefik"))
+	err = try.GetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, try.BodyContains("Host:tests-integration-traefik"))
 	c.Assert(err, checker.IsNil)
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
+	req, err = http.NewRequest("GET", "http://127.0.0.1:8000/", nil)
 	c.Assert(err, checker.IsNil)
 	req.Host = "tests-integration-traefik"
-	resp, err = client.Do(req)
 
+	err = try.Request(req, 500*time.Millisecond, try.StatusCodeIs(200))
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 200)
 
 	// TODO validate : run on 80
-	resp, err = http.Get("http://127.0.0.1:8000/")
-
 	// Expected a 404 as we did not configure anything
+	err = try.GetRequest("http://127.0.0.1:8000/", 500*time.Millisecond, try.StatusCodeIs(404))
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 404)
 }

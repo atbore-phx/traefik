@@ -1,26 +1,24 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
+	"strings"
+	"sync"
 	"time"
 
-	"context"
-
 	"github.com/containous/staert"
+	"github.com/containous/traefik/cluster"
+	"github.com/containous/traefik/integration/try"
+	"github.com/containous/traefik/provider"
 	"github.com/docker/libkv"
 	"github.com/docker/libkv/store"
 	"github.com/docker/libkv/store/consul"
 	"github.com/go-check/check"
-
-	"io/ioutil"
-	"os"
-	"strings"
-	"sync"
-
-	"github.com/containous/traefik/cluster"
-	"github.com/containous/traefik/integration/utils"
-	"github.com/containous/traefik/provider"
 	checker "github.com/vdemeester/shakers"
 )
 
@@ -48,7 +46,7 @@ func (s *ConsulSuite) setupConsul(c *check.C) {
 	s.kv = kv
 
 	// wait for consul
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := kv.Exists("test")
 		return err
 	})
@@ -84,7 +82,7 @@ func (s *ConsulSuite) setupConsulTLS(c *check.C) {
 	s.kv = kv
 
 	// wait for consul
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := kv.Exists("test")
 		return err
 	})
@@ -105,17 +103,15 @@ func (s *ConsulSuite) TestSimpleConfiguration(c *check.C) {
 	consulHost := s.composeProject.Container(c, "consul").NetworkSettings.IPAddress
 	file := s.adaptFile(c, "fixtures/consul/simple.toml", struct{ ConsulHost string }{consulHost})
 	defer os.Remove(file)
+
 	cmd := exec.Command(traefikBinary, "--configFile="+file)
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	resp, err := utils.TryGetResponse("http://127.0.0.1:8000/", 1*time.Second)
-	c.Assert(err, checker.IsNil)
-	defer resp.Body.Close()
-
 	// Expected a 404 as we did not configure anything
-	c.Assert(resp.StatusCode, checker.Equals, 404)
+	err = try.GetRequest("http://127.0.0.1:8000/", 1*time.Second, try.StatusCodeIs(404))
+	c.Assert(err, checker.IsNil)
 }
 
 func (s *ConsulSuite) TestNominalConfiguration(c *check.C) {
@@ -123,6 +119,7 @@ func (s *ConsulSuite) TestNominalConfiguration(c *check.C) {
 	consulHost := s.composeProject.Container(c, "consul").NetworkSettings.IPAddress
 	file := s.adaptFile(c, "fixtures/consul/simple.toml", struct{ ConsulHost string }{consulHost})
 	defer os.Remove(file)
+
 	cmd := exec.Command(traefikBinary, "--configFile="+file)
 	err := cmd.Start()
 	c.Assert(err, checker.IsNil)
@@ -177,7 +174,7 @@ func (s *ConsulSuite) TestNominalConfiguration(c *check.C) {
 	}
 
 	// wait for consul
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := s.kv.Exists("traefik/frontends/frontend2/routes/test_2/rule")
 		if err != nil {
 			return err
@@ -187,7 +184,7 @@ func (s *ConsulSuite) TestNominalConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second, utils.BodyContains("Path:/test"))
+	err = try.GetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second, try.BodyContains("Path:/test"))
 	c.Assert(err, checker.IsNil)
 
 	client := &http.Client{}
@@ -239,7 +236,7 @@ func (s *ConsulSuite) TestGlobalConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 
 	// wait for consul
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := s.kv.Exists("traefik/entrypoints/http/address")
 		return err
 	})
@@ -303,14 +300,14 @@ func (s *ConsulSuite) TestGlobalConfiguration(c *check.C) {
 	}
 
 	// wait for consul
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := s.kv.Exists("traefik/frontends/frontend2/routes/test_2/rule")
 		return err
 	})
 	c.Assert(err, checker.IsNil)
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, utils.BodyContains("Path:/test"))
+	err = try.GetRequest("http://127.0.0.1:8080/api/providers", 60*time.Second, try.BodyContains("Path:/test"))
 	c.Assert(err, checker.IsNil)
 
 	//check
@@ -333,7 +330,7 @@ func (s *ConsulSuite) skipTestGlobalConfigurationWithClientTLS(c *check.C) {
 	c.Assert(err, checker.IsNil)
 
 	// wait for consul
-	err = utils.Try(60*time.Second, func() error {
+	err = try.Do(60*time.Second, func() error {
 		_, err := s.kv.Exists("traefik/web/address")
 		return err
 	})
@@ -354,7 +351,7 @@ func (s *ConsulSuite) skipTestGlobalConfigurationWithClientTLS(c *check.C) {
 	defer cmd.Process.Kill()
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second)
+	err = try.GetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second)
 	c.Assert(err, checker.IsNil)
 
 }
@@ -380,7 +377,7 @@ func (s *ConsulSuite) TestCommandStoreConfig(c *check.C) {
 
 	for key, value := range checkmap {
 		var p *store.KVPair
-		err = utils.Try(60*time.Second, func() error {
+		err = try.Do(60*time.Second, func() error {
 			p, err = s.kv.Get(key)
 			return err
 		})
@@ -417,9 +414,16 @@ func (s *ConsulSuite) TestDatastore(c *check.C) {
 		Int:    1,
 	})
 	c.Assert(err, checker.IsNil)
-	utils.Sleep(2 * time.Second)
-	test1 := datastore1.Get().(*TestStruct)
-	c.Assert(test1.String, checker.Equals, "foo")
+
+	err = try.Do(2*time.Second, func() error {
+		expectedValue := "foo"
+		test1 := datastore1.Get().(*TestStruct)
+		if test1.String != expectedValue {
+			return fmt.Errorf("Got %s, wanted %s.", test1.String, expectedValue)
+		}
+		return nil
+	})
+	c.Assert(err, checker.IsNil)
 
 	test2 := datastore2.Get().(*TestStruct)
 	c.Assert(test2.String, checker.Equals, "foo")
@@ -431,9 +435,16 @@ func (s *ConsulSuite) TestDatastore(c *check.C) {
 		Int:    2,
 	})
 	c.Assert(err, checker.IsNil)
-	utils.Sleep(2 * time.Second)
-	test1 = datastore1.Get().(*TestStruct)
-	c.Assert(test1.String, checker.Equals, "bar")
+
+	err = try.Do(2*time.Second, func() error {
+		expectedValue := "bar"
+		test1 := datastore1.Get().(*TestStruct)
+		if test1.String != expectedValue {
+			return fmt.Errorf("Got %s, wanted %s.", test1.String, expectedValue)
+		}
+		return nil
+	})
+	c.Assert(err, checker.IsNil)
 
 	test2 = datastore2.Get().(*TestStruct)
 	c.Assert(test2.String, checker.Equals, "bar")

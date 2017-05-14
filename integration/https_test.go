@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	"github.com/go-check/check"
 
 	checker "github.com/vdemeester/shakers"
@@ -26,7 +26,7 @@ func (s *HTTPSSuite) TestWithSNIConfigHandshake(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	utils.Sleep(500 * time.Millisecond)
+	try.Sleep(500 * time.Millisecond)
 
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
@@ -62,7 +62,7 @@ func (s *HTTPSSuite) TestWithSNIConfigRoute(c *check.C) {
 	defer backend1.Close()
 	defer backend2.Close()
 
-	utils.Sleep(2000 * time.Millisecond)
+	try.Sleep(2000 * time.Millisecond)
 
 	tr1 := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -106,7 +106,7 @@ func (s *HTTPSSuite) TestWithClientCertificateAuthentication(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	utils.Sleep(500 * time.Millisecond)
+	try.Sleep(500 * time.Millisecond)
 
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
@@ -150,7 +150,7 @@ func (s *HTTPSSuite) TestWithClientCertificateAuthenticationMultipeCAs(c *check.
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	utils.Sleep(500 * time.Millisecond)
+	try.Sleep(500 * time.Millisecond)
 
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
@@ -207,7 +207,7 @@ func (s *HTTPSSuite) TestWithClientCertificateAuthenticationMultipeCAsMultipleFi
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	utils.Sleep(500 * time.Millisecond)
+	try.Sleep(500 * time.Millisecond)
 
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,

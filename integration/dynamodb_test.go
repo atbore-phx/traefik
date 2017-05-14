@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	"github.com/containous/traefik/types"
 	"github.com/go-check/check"
 	checker "github.com/vdemeester/shakers"
@@ -46,7 +46,7 @@ func (s *DynamoDBSuite) SetUpSuite(c *check.C) {
 		Endpoint:    aws.String(dynamoURL),
 	}
 	var sess *session.Session
-	err := utils.Try(60*time.Second, func() error {
+	err := try.Do(60*time.Second, func() error {
 		_, err := session.NewSession(config)
 		if err != nil {
 			return err
@@ -152,7 +152,7 @@ func (s *DynamoDBSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 120*time.Second, utils.BodyContains("Host:test.traefik.io"))
+	err = try.GetRequest("http://127.0.0.1:8081/api/providers", 120*time.Second, try.BodyContains("Host:test.traefik.io"))
 	c.Assert(err, checker.IsNil)
 
 	client := &http.Client{}

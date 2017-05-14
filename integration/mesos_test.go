@@ -1,13 +1,12 @@
 package main
 
 import (
-	"net/http"
 	"os/exec"
 	"time"
 
 	"github.com/go-check/check"
 
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	checker "github.com/vdemeester/shakers"
 )
 
@@ -24,12 +23,8 @@ func (s *MesosSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	// FIXME replace by a Try
-	utils.Sleep(500 * time.Millisecond)
 	// TODO validate : run on 80
-	resp, err := http.Get("http://127.0.0.1:8000/")
-
 	// Expected a 404 as we did not configure anything
+	err = try.GetRequest("http://127.0.0.1:8000/", 500*time.Millisecond, try.StatusCodeIs(404))
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 404)
 }

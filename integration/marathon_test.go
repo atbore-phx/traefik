@@ -1,13 +1,11 @@
 package main
 
 import (
-	"net/http"
 	"os/exec"
 	"time"
 
-	"github.com/containous/traefik/integration/utils"
+	"github.com/containous/traefik/integration/try"
 	"github.com/go-check/check"
-
 	checker "github.com/vdemeester/shakers"
 )
 
@@ -19,7 +17,7 @@ func (s *MarathonSuite) SetUpSuite(c *check.C) {
 	s.composeProject.Start(c)
 
 	// FIXME Doesn't work...
-	// "github.com/gambol99/go-marathon"
+	//// "github.com/gambol99/go-marathon"
 	//config := marathon.NewDefaultConfig()
 	//
 	//marathonClient, err := marathon.NewClient(config)
@@ -27,8 +25,8 @@ func (s *MarathonSuite) SetUpSuite(c *check.C) {
 	//	c.Fatalf("Error creating Marathon client. %v", err)
 	//}
 	//
-	// Wait for Marathon to elect itself leader
-	//utils.Try(90*time.Second, func() error {
+	//// Wait for Marathon to elect itself leader
+	//err = try.Do(30*time.Second, func() error {
 	//	leader, err := marathonClient.Leader()
 	//
 	//	if err != nil || len(leader) == 0 {
@@ -47,11 +45,9 @@ func (s *MarathonSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	defer cmd.Process.Kill()
 
-	utils.Sleep(500 * time.Millisecond)
 	// TODO validate : run on 80
-	resp, err := http.Get("http://127.0.0.1:8000/")
-
 	// Expected a 404 as we did not configure anything
+	err = try.GetRequest("http://127.0.0.1:8000/", 500*time.Millisecond, try.StatusCodeIs(404))
+
 	c.Assert(err, checker.IsNil)
-	c.Assert(resp.StatusCode, checker.Equals, 404)
 }
