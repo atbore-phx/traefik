@@ -372,7 +372,7 @@ func (s *ConsulSuite) TestCommandStoreConfig(c *check.C) {
 		"/traefik/defaultentrypoints/0":     "http",
 		"/traefik/entrypoints/http/address": ":8000",
 		"/traefik/web/address":              ":8080",
-		"/traefik/consul/endpoint":          (consulHost + ":8500"),
+		"/traefik/consul/endpoint":          consulHost + ":8500",
 	}
 
 	for key, value := range checkmap {
@@ -415,7 +415,7 @@ func (s *ConsulSuite) TestDatastore(c *check.C) {
 	})
 	c.Assert(err, checker.IsNil)
 
-	err = try.Do(2*time.Second, func() error {
+	err = try.Do(3*time.Second, func() error {
 		expectedValue := "foo"
 		test1 := datastore1.Get().(*TestStruct)
 		if test1.String != expectedValue {
@@ -436,7 +436,7 @@ func (s *ConsulSuite) TestDatastore(c *check.C) {
 	})
 	c.Assert(err, checker.IsNil)
 
-	err = try.Do(2*time.Second, func() error {
+	err = try.Do(3*time.Second, func() error {
 		expectedValue := "bar"
 		test1 := datastore1.Get().(*TestStruct)
 		if test1.String != expectedValue {

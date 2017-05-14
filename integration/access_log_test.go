@@ -60,11 +60,11 @@ func (s *AccessLogSuite) TestAccessLog(c *check.C) {
 	defer ts3.Close()
 
 	// Make some requests
-	_, err = http.Get("http://127.0.0.1:8000/test1")
+	err = try.GetRequest("http://127.0.0.1:8000/test1", 500*time.Millisecond)
 	c.Assert(err, checker.IsNil)
-	_, err = http.Get("http://127.0.0.1:8000/test2")
+	err = try.GetRequest("http://127.0.0.1:8000/test2", 500*time.Millisecond)
 	c.Assert(err, checker.IsNil)
-	_, err = http.Get("http://127.0.0.1:8000/test2")
+	err = try.GetRequest("http://127.0.0.1:8000/test2", 500*time.Millisecond)
 	c.Assert(err, checker.IsNil)
 
 	// Verify access.log output as expected
