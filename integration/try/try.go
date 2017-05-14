@@ -22,7 +22,7 @@ type timedAction func(timeout time.Duration, operation func() error) error
 func Sleep(d time.Duration) {
 	ci := os.Getenv("CI")
 	if len(ci) > 0 {
-		log.Println("Activate CI multiplier:", CITimeoutMultiplier)
+		log.Println("Apply CI multiplier:", CITimeoutMultiplier)
 		d = time.Duration(float64(d) * CITimeoutMultiplier)
 	}
 	time.Sleep(d)
