@@ -17,6 +17,17 @@ const (
 
 type timedAction func(timeout time.Duration, operation func() error) error
 
+// Sleep pauses the current goroutine for at least the duration d.
+// Deprecated: Use only when use an other Try[...] functions is not possible.
+func Sleep(d time.Duration) {
+	ci := os.Getenv("CI")
+	if len(ci) > 0 {
+		log.Println("Activate CI multiplier:", CITimeoutMultiplier)
+		d = time.Duration(float64(d) * CITimeoutMultiplier)
+	}
+	time.Sleep(d)
+}
+
 // Response is like Request, but returns the response for further
 // processing at the call site.
 // Conditions are not allowed since it would complicate signaling if the
