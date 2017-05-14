@@ -55,13 +55,40 @@ func (s *HealthCheckSuite) TestSimpleConfiguration(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	c.Assert(resp.StatusCode, checker.Equals, 200)
 
-	healthReq, err := http.NewRequest("POST", "http://"+whoami1Host+"/health", bytes.NewBuffer([]byte("500")))
-	c.Assert(err, checker.IsNil)
-	_, err = client.Do(healthReq)
+	// Fix all whoami health to 500
+	whoamiHosts := []string{whoami1Host, whoami2Host}
+	for _, whoami := range whoamiHosts {
+		healthReq, err := http.NewRequest("POST", "http://"+whoami+"/health", bytes.NewBuffer([]byte("500")))
+		c.Assert(err, checker.IsNil)
+		_, err = client.Do(healthReq)
+		c.Assert(err, checker.IsNil)
+	}
+
+	utils.Sleep(3 * time.Second)
+
+	// Verify frontend health : 500
+	err = utils.TryRequest(req, 3*time.Second, utils.UntilStatusCodeIs(500))
 	c.Assert(err, checker.IsNil)
 
-	utils.TryResponseUntilStatusCode(req, 3*time.Second, 200)
+	// Change one whoami health to 200
+	healthReq1, err := http.NewRequest("POST", "http://"+whoami1Host+"/health", bytes.NewBuffer([]byte("200")))
 	c.Assert(err, checker.IsNil)
+	_, err = client.Do(healthReq1)
+	c.Assert(err, checker.IsNil)
+
+	// Verify frontend health : before
+	err = utils.TryRequest(req, 3*time.Second, utils.UntilStatusCodeIs(500))
+	c.Assert(err, checker.IsNil)
+
+	utils.Sleep(3 * time.Second)
+
+	// Verify frontend health : after
+	err = utils.TryRequest(req, 3*time.Second, utils.UntilStatusCodeIs(200))
+	c.Assert(err, checker.IsNil)
+
+	// sure?
+	err = utils.TryRequest(req, 3*time.Second, utils.UntilStatusCodeIs(500))
+	c.Assert(err, checker.Not(checker.IsNil))
 
 	resp, err = client.Do(req)
 	c.Assert(err, checker.IsNil)
