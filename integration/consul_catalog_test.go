@@ -119,7 +119,6 @@ func (s *ConsulCatalogSuite) TestSingleService(c *check.C) {
 	c.Assert(err, checker.IsNil)
 	req.Host = "test.consul.localhost"
 
-	cond := utils.ComposeCondition(utils.UntilStatusCodeIs(200), utils.BodyContains("Welcome to nginx!"))
-	err = utils.TryRequest(req, 5*time.Second, cond)
+	err = utils.TryRequest(req, 5*time.Second, utils.UntilStatusCodeIs(200), utils.BodyContains("Welcome to nginx!"))
 	c.Assert(err, checker.IsNil)
 }

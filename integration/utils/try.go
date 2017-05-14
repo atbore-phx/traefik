@@ -24,7 +24,7 @@ const (
 // response body needs to be closed or not. Callers are expected to close on
 // their own if the function returns a nil error.
 func TryGetResponse(url string, timeout time.Duration) (*http.Response, error) {
-	return doGetResponse(url, timeout, nil)
+	return doGetResponse(url, timeout)
 }
 
 // TryGetResponseUntilStatusCode is like TryGetRequest, but returns the response for further
@@ -42,7 +42,7 @@ func TryGetResponseUntilStatusCode(url string, timeout time.Duration, statusCode
 // response body needs to be closed or not. Callers are expected to close on
 // their own if the function returns a nil error.
 func TryResponse(req *http.Request, timeout time.Duration) (*http.Response, error) {
-	return doResponse(req, timeout, nil)
+	return doResponse(req, timeout)
 }
 
 // TryResponseUntilStatusCode is like TryRequest, but returns the response for further
@@ -58,8 +58,8 @@ func TryResponseUntilStatusCode(req *http.Request, timeout time.Duration, status
 // the condition on the response.
 // Condition may be nil, in which case only the request against the URL must
 // succeed.
-func TryGetRequest(url string, timeout time.Duration, condition Condition) error {
-	resp, err := doGetResponse(url, timeout, condition)
+func TryGetRequest(url string, timeout time.Duration, conditions ...Condition) error {
+	resp, err := doGetResponse(url, timeout, conditions...)
 
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -72,8 +72,8 @@ func TryGetRequest(url string, timeout time.Duration, condition Condition) error
 // the condition on the response.
 // Condition may be nil, in which case only the request against the URL must
 // succeed.
-func TryRequest(req *http.Request, timeout time.Duration, condition Condition) error {
-	resp, err := doResponse(req, timeout, condition)
+func TryRequest(req *http.Request, timeout time.Duration, conditions ...Condition) error {
+	resp, err := doResponse(req, timeout, conditions...)
 
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -141,19 +141,6 @@ func Sleep(d time.Duration) {
 // if the response failed the condition.
 type Condition func(*http.Response) error
 
-// ComposeCondition compose several `Conditions`.
-func ComposeCondition(conditions ...Condition) Condition {
-	return func(resp *http.Response) error {
-		for _, cond := range conditions {
-			err := cond(resp)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-}
-
 // BodyContains returns a retry condition function.
 // The condition returns an error if the request body does not contain the given
 // string.
@@ -183,16 +170,16 @@ func UntilStatusCodeIs(status int) Condition {
 	}
 }
 
-func doGetResponse(url string, timeout time.Duration, condition Condition) (*http.Response, error) {
+func doGetResponse(url string, timeout time.Duration, conditions ...Condition) (*http.Response, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return doResponse(req, timeout, condition)
+	return doResponse(req, timeout, conditions...)
 }
 
-func doResponse(request *http.Request, timeout time.Duration, condition Condition) (*http.Response, error) {
+func doResponse(request *http.Request, timeout time.Duration, conditions ...Condition) (*http.Response, error) {
 	var resp *http.Response
 	return resp, Try(timeout, func() error {
 		var err error
@@ -200,8 +187,13 @@ func doResponse(request *http.Request, timeout time.Duration, condition Conditio
 
 		resp, err = client.Do(request)
 
-		if err == nil && condition != nil {
-			err = condition(resp)
+		for _, condition := range conditions {
+			if err == nil && condition != nil {
+				err := condition(resp)
+				if err != nil {
+					return err
+				}
+			}
 		}
 
 		return err

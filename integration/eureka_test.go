@@ -31,7 +31,7 @@ func (s *EurekaSuite) SetUpSuite(c *check.C) {
 	s.eurekaURL = "http://" + s.eurekaIP + ":8761/eureka/apps"
 
 	// wait for eureka
-	err := utils.TryGetRequest(s.eurekaURL, 60*time.Second, nil)
+	err := utils.TryGetRequest(s.eurekaURL, 60*time.Second)
 	c.Assert(err, checker.IsNil)
 }
 

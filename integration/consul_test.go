@@ -354,7 +354,7 @@ func (s *ConsulSuite) skipTestGlobalConfigurationWithClientTLS(c *check.C) {
 	defer cmd.Process.Kill()
 
 	// wait for traefik
-	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second, nil)
+	err = utils.TryGetRequest("http://127.0.0.1:8081/api/providers", 60*time.Second)
 	c.Assert(err, checker.IsNil)
 
 }
