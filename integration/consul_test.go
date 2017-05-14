@@ -419,7 +419,7 @@ func (s *ConsulSuite) TestDatastore(c *check.C) {
 		expectedValue := "foo"
 		test1 := datastore1.Get().(*TestStruct)
 		if test1.String != expectedValue {
-			return fmt.Errorf("Got %s, wanted %s.", test1.String, expectedValue)
+			return fmt.Errorf("Got %s, wanted %s", test1.String, expectedValue)
 		}
 		return nil
 	})
@@ -440,7 +440,7 @@ func (s *ConsulSuite) TestDatastore(c *check.C) {
 		expectedValue := "bar"
 		test1 := datastore1.Get().(*TestStruct)
 		if test1.String != expectedValue {
-			return fmt.Errorf("Got %s, wanted %s.", test1.String, expectedValue)
+			return fmt.Errorf("Got %s, wanted %s", test1.String, expectedValue)
 		}
 		return nil
 	})
