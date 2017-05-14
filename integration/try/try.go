@@ -20,11 +20,7 @@ type timedAction func(timeout time.Duration, operation func() error) error
 // Sleep pauses the current goroutine for at least the duration d.
 // Deprecated: Use only when use an other Try[...] functions is not possible.
 func Sleep(d time.Duration) {
-	ci := os.Getenv("CI")
-	if len(ci) > 0 {
-		log.Println("Apply CI multiplier:", CITimeoutMultiplier)
-		d = time.Duration(float64(d) * CITimeoutMultiplier)
-	}
+	d = applyCIMultiplier(d)
 	time.Sleep(d)
 }
 
@@ -86,11 +82,7 @@ func Do(timeout time.Duration, operation func() error) error {
 		interval = maxInterval
 	}
 
-	ci := os.Getenv("CI")
-	if len(ci) > 0 {
-		log.Println("Activate CI multiplier:", CITimeoutMultiplier)
-		timeout = time.Duration(float64(timeout) * CITimeoutMultiplier)
-	}
+	timeout = applyCIMultiplier(timeout)
 
 	var err error
 	if err = operation(); err == nil {
@@ -153,4 +145,13 @@ func doRequest(action timedAction, timeout time.Duration, request *http.Request,
 
 		return err
 	})
+}
+
+func applyCIMultiplier(timeout time.Duration) time.Duration {
+	ci := os.Getenv("CI")
+	if len(ci) > 0 {
+		log.Debug("Apply CI multiplier:", CITimeoutMultiplier)
+		return time.Duration(float64(timeout) * CITimeoutMultiplier)
+	}
+	return timeout
 }
