@@ -105,21 +105,23 @@ func Try(timeout time.Duration, operation func() error) error {
 		return nil
 	}
 
-	stopTime := time.Now().Add(timeout)
+	stopTimer := time.NewTimer(timeout)
+	retryTick := time.NewTicker(interval)
 
 	for {
-		if time.Now().After(stopTime) {
-			fmt.Println("-")
-			return fmt.Errorf("try operation failed: %s", err)
-		}
-
-		// FIXME refactor this part
 		select {
-		case <-time.Tick(interval):
+		case <-stopTimer.C:
+			fmt.Println("-")
+			stopTimer.Stop()
+			retryTick.Stop()
+			return fmt.Errorf("try operation failed: %s", err)
+		case <-retryTick.C:
 			fmt.Print("*")
 			if err = operation(); err == nil {
 				fmt.Println("+")
-				return nil
+				stopTimer.Stop()
+				retryTick.Stop()
+				return err
 			}
 		}
 	}
